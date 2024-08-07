@@ -1,0 +1,6 @@
+.env
+postgres_data
+postgres_run
+logfile
+*.log
+*/tmp
