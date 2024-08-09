@@ -4,3 +4,5 @@ postgres_run
 logfile
 *.log
 */tmp
+*.sql
+tmp
