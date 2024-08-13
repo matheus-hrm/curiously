@@ -14,16 +14,16 @@ type Store struct {
 }
 
 func NewStore(db *pgxpool.Pool) *Store {
-	return &Store{db:db}
+	return &Store{db: db}
 }
 
-func ScanRowIntoUser(rows pgx.Rows ) (*types.User, error) {
+func ScanRowIntoUser(rows pgx.Rows) (*types.User, error) {
 	user := new(types.User)
 	err := rows.Scan(
 		&user.ID,
-		&user.Email, 
-		&user.Username, 
-		&user.Password_Hash, 
+		&user.Email,
+		&user.Username,
+		&user.Password_Hash,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -33,7 +33,7 @@ func ScanRowIntoUser(rows pgx.Rows ) (*types.User, error) {
 	return user, nil
 }
 
-func (s *Store) GetUserByEmail(email string,c *gin.Context) (*types.User, error) {
+func (s *Store) GetUserByEmail(email string, c *gin.Context) (*types.User, error) {
 	row := s.db.QueryRow(c, "SELECT * FROM users WHERE email = $1", email)
 	user := new(types.User)
 	err := row.Scan(
@@ -50,16 +50,45 @@ func (s *Store) GetUserByEmail(email string,c *gin.Context) (*types.User, error)
 	return user, nil
 }
 
-func (s *Store) GetUserByID(id int, c *gin.Context) (*types.User, error) {
-	rows,err := s.db.Query(c, "SELECT * FROM users WHERE id = $1", id)
+func (s *Store) GetQuestionsByUserID(id int, c *gin.Context) ([]types.Question, error) {
+	rows, err := s.db.Query(c, "SELECT * FROM questions WHERE user_id = $1", id)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	user, err := ScanRowIntoUser(rows)
-	if err != nil {
-		return nil, err
+	questions := make([]types.Question, 0)
+	for rows.Next() {
+		question := new(types.Question)
+		err := rows.Scan(
+			&question.ID,
+			&question.Content,
+			&question.IsAnonymous,
+			&question.UserID,
+			&question.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		questions = append(questions, *question)
 	}
+	return questions, nil
+}
+
+func (s *Store) GetUserByID(id int, c *gin.Context) (*types.User, error) {
+	row := s.db.QueryRow(c, "SELECT * FROM users WHERE id = $1", id)
+	user := new(types.User)
+	err := row.Scan(
+		&user.ID,
+		&user.Email,
+		&user.Username,
+		&user.Password_Hash,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		log.Fatalf("error scanning row: %s", err)
+	}
+
 	return user, nil
 }
 
@@ -70,4 +99,3 @@ func (s *Store) CreateUser(user types.User, c *gin.Context) error {
 	}
 	return nil
 }
-

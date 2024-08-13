@@ -10,38 +10,43 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"gitub.com/matheus-hrm/curiously/service/question"
 	"gitub.com/matheus-hrm/curiously/service/user"
 )
 
 type APIServer struct {
-	addr string
-	db  *pgxpool.Pool
+	addr   string
+	db     *pgxpool.Pool
 	router *gin.Engine
 }
 
 func New(addr string, db *pgxpool.Pool) *APIServer {
 	return &APIServer{
-		addr: addr, 
-		db: db,
+		addr:   addr,
+		db:     db,
 		router: gin.Default(),
 	}
 }
 
 func (s *APIServer) Router() *gin.Engine {
 	return s.router
-} 
+}
 
 func (s *APIServer) SetupRoutes() {
 	userStore := user.NewStore(s.db)
 	userHandler := user.NewHandler(userStore)
 	userHandler.RegisterRoutes(s.router)
+
+	questionStore := question.NewStore(s.db)
+	questionHandler := question.NewHandler(questionStore)
+	questionHandler.RegisterRoutes(s.router)
 }
 
 func (s *APIServer) Run() error {
 	s.SetupRoutes()
 
 	srv := &http.Server{
-		Addr: s.addr,
+		Addr:    s.addr,
 		Handler: s.router,
 	}
 
@@ -50,12 +55,12 @@ func (s *APIServer) Run() error {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()
-	
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
 	log.Println("Shutting down server...")
-	
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
@@ -65,3 +70,4 @@ func (s *APIServer) Run() error {
 	log.Fatalf("Server exiting")
 	return nil
 }
+
