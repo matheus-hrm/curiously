@@ -18,13 +18,16 @@ func NewStore(db *pgxpool.Pool) *Store {
 
 func (s *Store) CreateQuestion(payload types.CreateQuestionPayload, c *gin.Context) (*types.Question, error) {
 	log.Printf("payload: %+v", payload)
-	row := s.db.QueryRow(c, "INSERT INTO questions (user_id, content, is_anonymous) VALUES ($1, $2, $3) RETURNING *", payload.UserID, payload.Content, payload.IsAnonymous)
+	row := s.db.QueryRow(c,
+		"INSERT INTO questions (user_id, content, is_anonymous) VALUES ($1, $2, $3) RETURNING id, user_id, content, is_anonymous::boolean, created_at",
+		payload.UserID, payload.Content, payload.IsAnonymous,
+	)
 	question := new(types.Question)
 	err := row.Scan(
 		&question.ID,
+		&question.UserID,
 		&question.Content,
 		&question.IsAnonymous,
-		&question.UserID,
 		&question.CreatedAt,
 	)
 	if err != nil {
@@ -38,9 +41,9 @@ func (s *Store) GetQuestionByID(id int, c *gin.Context) (*types.Question, error)
 	question := new(types.Question)
 	err := row.Scan(
 		&question.ID,
+		&question.UserID,
 		&question.Content,
 		&question.IsAnonymous,
-		&question.UserID,
 		&question.CreatedAt,
 	)
 	if err != nil {
@@ -60,9 +63,9 @@ func (s *Store) GetQuestions(c *gin.Context) ([]types.Question, error) {
 		question := new(types.Question)
 		err := rows.Scan(
 			&question.ID,
+			&question.UserID,
 			&question.Content,
 			&question.IsAnonymous,
-			&question.UserID,
 			&question.CreatedAt,
 		)
 		if err != nil {
@@ -72,4 +75,3 @@ func (s *Store) GetQuestions(c *gin.Context) ([]types.Question, error) {
 	}
 	return questions, nil
 }
-

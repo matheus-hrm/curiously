@@ -61,9 +61,9 @@ func (s *Store) GetQuestionsByUserID(id int, c *gin.Context) ([]types.Question, 
 		question := new(types.Question)
 		err := rows.Scan(
 			&question.ID,
+			&question.UserID,
 			&question.Content,
 			&question.IsAnonymous,
-			&question.UserID,
 			&question.CreatedAt,
 		)
 		if err != nil {
