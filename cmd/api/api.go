@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"gitub.com/matheus-hrm/curiously/service/answers"
 	"gitub.com/matheus-hrm/curiously/service/question"
 	"gitub.com/matheus-hrm/curiously/service/user"
 )
@@ -34,12 +35,17 @@ func (s *APIServer) Router() *gin.Engine {
 
 func (s *APIServer) SetupRoutes() {
 	userStore := user.NewStore(s.db)
-	userHandler := user.NewHandler(userStore)
+	answerStore := answers.NewStore(s.db)
+	questionStore := question.NewStore(s.db)
+
+	userHandler := user.NewHandler(userStore, answerStore)
 	userHandler.RegisterRoutes(s.router)
 
-	questionStore := question.NewStore(s.db)
 	questionHandler := question.NewHandler(questionStore)
 	questionHandler.RegisterRoutes(s.router)
+
+	answerHandler := answers.NewHandler(answerStore, userStore)
+	answerHandler.RegisterRoutes(s.router)
 }
 
 func (s *APIServer) Run() error {
@@ -70,4 +76,3 @@ func (s *APIServer) Run() error {
 	log.Fatalf("Server exiting")
 	return nil
 }
-

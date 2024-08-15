@@ -99,3 +99,20 @@ func (s *Store) CreateUser(user types.User, c *gin.Context) error {
 	}
 	return nil
 }
+
+func (s *Store) GetUserByUsername(username string, c *gin.Context) (*types.User, error) {
+	row := s.db.QueryRow(c, "SELECT * FROM users WHERE username = $1", username)
+	user := new(types.User)
+	err := row.Scan(
+		&user.ID,
+		&user.Email,
+		&user.Username,
+		&user.Password_Hash,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		log.Fatalf("error scanning row: %s", err)
+	}
+	return user, nil
+}

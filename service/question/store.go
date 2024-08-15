@@ -1,8 +1,6 @@
 package question
 
 import (
-	"log"
-
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"gitub.com/matheus-hrm/curiously/types"
@@ -17,7 +15,6 @@ func NewStore(db *pgxpool.Pool) *Store {
 }
 
 func (s *Store) CreateQuestion(payload types.CreateQuestionPayload, c *gin.Context) (*types.Question, error) {
-	log.Printf("payload: %+v", payload)
 	row := s.db.QueryRow(c,
 		"INSERT INTO questions (user_id, content, is_anonymous) VALUES ($1, $2, $3) RETURNING id, user_id, content, is_anonymous::boolean, created_at",
 		payload.UserID, payload.Content, payload.IsAnonymous,

@@ -13,6 +13,16 @@ func TestComparePasswords(t *testing.T) {
 		name string
 		args args
 		want bool
+	}{
+		// Add at least one test case here
+		{
+			name: "Test Case 1",
+			args: args{
+				hashed: "hashed value",
+				plain:  []byte("plain value"),
+			},
+			want: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -32,6 +42,16 @@ func TestHashPassword(t *testing.T) {
 		args    args
 		want    string
 		wantErr bool
+	}{
+		// Add at least one test case here
+		{
+			name: "Test Case 1",
+			args: args{
+				password: "password",
+			},
+			want:    "hashed password",
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -11,12 +11,26 @@ type UserStorage interface {
 	GetUserByID(id int, context *gin.Context) (*User, error)
 	CreateUser(user User, context *gin.Context) error
 	GetQuestionsByUserID(id int, context *gin.Context) ([]Question, error)
+	GetUserByUsername(username string, context *gin.Context) (*User, error)
 }
 
 type QuestionStorage interface {
 	CreateQuestion(payload CreateQuestionPayload, context *gin.Context) (*Question, error)
 	GetQuestionByID(id int, context *gin.Context) (*Question, error)
 	GetQuestions(context *gin.Context) ([]Question, error)
+}
+
+type AnswerStorage interface {
+	CreateAnswer(payload CreateAnswerPayload, context *gin.Context) (*Answer, error)
+	GetAnswerByID(id int, context *gin.Context) (*Answer, error)
+	GetAnswersByQuestionID(id int, context *gin.Context) ([]Answer, error)
+}
+
+type CreateAnswerPayload struct {
+	Content    string    `json:"content" validate:"required"`
+	UserID     int       `json:"userid"`
+	QuestionID int       `json:"questionid"`
+	CreatedAt  time.Time `json:"created_at"`
 }
 
 type CreateQuestionPayload struct {
@@ -38,6 +52,7 @@ type ProfileQuestion struct {
 	Content   string    `json:"content"`
 	CreatedAt time.Time `json:"created_at"`
 	Answered  bool      `json:"answered"`
+	Answer    []string  `json:"answer"`
 }
 type LoginUserPayload struct {
 	Email    string `json:"email" validate:"required,email"`
@@ -52,8 +67,8 @@ type RegisterUserPayload struct {
 
 type User struct {
 	ID            int       `json:"id"`
-	Email         string    `json:"email"`
 	Username      string    `json:"username"`
+	Email         string    `json:"email"`
 	Password_Hash string    `json:"-"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
@@ -68,7 +83,9 @@ type Question struct {
 }
 
 type Answer struct {
-	ID        int       `json:"id"`
-	Content   string    `json:"content"`
-	CreatedAt time.Time `json:"created_at"`
+	ID         int       `json:"id"`
+	QuestionID int       `json:"question_id"`
+	UserID     int       `json:"user_id"`
+	Content    string    `json:"content"`
+	CreatedAt  time.Time `json:"created_at"`
 }

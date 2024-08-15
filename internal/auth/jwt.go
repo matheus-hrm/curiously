@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -33,10 +34,13 @@ func CreateJWT(secret []byte, id int) (string, error) {
 func WithJWTAuth(store types.UserStorage, handler func(c *gin.Context)) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := getTokenFromRequest(c)
+		if tokenString == "" {
+			return
+		}
 
 		token, err := ValidateToken(tokenString)
 		if err != nil {
-			log.Printf("error validating token: %s", err)
+			log.Printf("error validating token: %v", err)
 			PermissionDenied(c)
 			return
 		}
@@ -48,13 +52,27 @@ func WithJWTAuth(store types.UserStorage, handler func(c *gin.Context)) gin.Hand
 		}
 
 		claims := token.Claims.(jwt.MapClaims)
-		str := claims["id"].(string)
-		id, err := strconv.Atoi(str)
+		var id int 
+		switch v := claims["id"].(type) {
+		case float64:
+			id = int(v)
+		case string:
+			id, err = strconv.Atoi(v)
+			if err != nil {
+				log.Printf("error converting id to int: %v", err)
+				PermissionDenied(c)
+				return
+			}
+		default :
+			log.Printf("error converting id to int: %v", err)
+			PermissionDenied(c)
+			return
+		}
 
 		log.Printf("id: %d", id)
 		user, err := store.GetUserByID(id, c)
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("error getting user: %v", err)
 			utils.WriteError(c, http.StatusNotFound, errors.New("user not found"))
 			return
 		}
@@ -71,9 +89,9 @@ func getTokenFromRequest(c *gin.Context) string {
 		return ""
 	}
 
-	splitToken := strings.Split(authHeader, "Bearer ")
-	if len(splitToken) != 2 {
-		utils.WriteError(c, http.StatusBadRequest, errors.New("invalid Authorization header"))
+	splitToken := strings.Split(authHeader, " ")
+	if len(splitToken) != 2 || splitToken[0] != "Bearer" {
+		utils.WriteError(c, http.StatusForbidden, errors.New("invalid Authorization header"))
 		return ""
 	}
 
@@ -83,10 +101,13 @@ func getTokenFromRequest(c *gin.Context) string {
 func ValidateToken(t string) (*jwt.Token, error) {
 	secret := []byte(os.Getenv("JWT_SECRET"))
 	token, err := jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
 		return secret, nil
 	})
 	if err != nil {
-		return nil, errors.New("invalid token")
+		return nil, err
 	}
 	return token, nil
 }

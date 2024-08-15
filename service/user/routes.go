@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gitub.com/matheus-hrm/curiously/internal/auth"
@@ -13,17 +12,21 @@ import (
 )
 
 type Handler struct {
-	store types.UserStorage
+	userStore   types.UserStorage
+	answerStore types.AnswerStorage
 }
 
-func NewHandler(store types.UserStorage) *Handler {
-	return &Handler{store}
+func NewHandler(userStore types.UserStorage, answerStore types.AnswerStorage) *Handler {
+	return &Handler{
+		userStore:   userStore,
+		answerStore: answerStore,
+	}
 }
 
 func (h *Handler) RegisterRoutes(router *gin.Engine) {
 	router.POST("/login", h.handleLogin)
 	router.POST("/register", h.handleRegister)
-	router.GET("/user/:id", h.handleGetUserProfile)
+	router.GET("/user/:username", h.handleGetUserProfile)
 }
 
 func (h *Handler) handleLogin(c *gin.Context) {
@@ -37,7 +40,7 @@ func (h *Handler) handleLogin(c *gin.Context) {
 		utils.WriteError(c, http.StatusBadRequest, errors.New("invalid payload"))
 		return
 	}
-	u, err := h.store.GetUserByEmail(payload.Email, c)
+	u, err := h.userStore.GetUserByEmail(payload.Email, c)
 	if err != nil {
 		utils.WriteError(c, http.StatusBadRequest, errors.New("invalid email"))
 		return
@@ -68,7 +71,7 @@ func (h *Handler) handleRegister(c *gin.Context) {
 		utils.WriteError(c, http.StatusBadRequest, errors.New("invalid payload"))
 		return
 	}
-	_, err := h.store.GetUserByEmail(payload.Email, c)
+	_, err := h.userStore.GetUserByEmail(payload.Email, c)
 	if err == nil {
 		utils.WriteError(c, http.StatusBadRequest, errors.New("email already in use"))
 		return
@@ -83,7 +86,7 @@ func (h *Handler) handleRegister(c *gin.Context) {
 		Username:      payload.Username,
 		Password_Hash: hash,
 	}
-	if err := h.store.CreateUser(user, c); err != nil {
+	if err := h.userStore.CreateUser(user, c); err != nil {
 		utils.WriteError(c, http.StatusInternalServerError, errors.New("internal server error"))
 		return
 	}
@@ -91,38 +94,47 @@ func (h *Handler) handleRegister(c *gin.Context) {
 }
 
 func (h *Handler) handleGetUserProfile(c *gin.Context) {
-	id := c.Param("id")
-	userId, err := strconv.Atoi(id)
+	username := c.Param("username")
+	user, err := h.userStore.GetUserByUsername(username, c)
 	if err != nil {
-		utils.WriteError(c, http.StatusBadRequest, errors.New("invalid id"))
+		utils.WriteError(c, http.StatusBadRequest, errors.New("invalid username"))
 		return
 	}
-	user, err := h.store.GetUserByID(userId, c)
+	questions, err := h.userStore.GetQuestionsByUserID(user.ID, c)
 	if err != nil {
-		utils.WriteError(c, http.StatusNotFound, errors.New("user not found"))
+		utils.WriteError(c, http.StatusInternalServerError, errors.New("failed to fetch questions"))
 		return
 	}
-
-	questions, err := h.store.GetQuestionsByUserID(userId, c)
-	if err != nil {
-		utils.WriteError(c, http.StatusInternalServerError, errors.New("internal server error"))
-		return
-	}
-
+	// FIXME ????
+	user.Email, user.Username = user.Username, user.Email
 	profile := types.UserProfile{
-		Username:  user.Username,
 		Email:     user.Email,
+		Username:  user.Username,
 		Questions: make([]types.ProfileQuestion, len(questions)),
 		CreatedAt: user.CreatedAt,
 	}
-	// TODO: check if questions are answered
-	for i, q := range questions {
-		profile.Questions[i] = types.ProfileQuestion{
+
+	for _, q := range questions {
+		pq := types.ProfileQuestion{
 			ID:        q.ID,
 			Content:   q.Content,
 			CreatedAt: q.CreatedAt,
-			// Answered: false,
+			Answer:    []string{},
+			Answered:  false,
 		}
+
+		ans, err := h.answerStore.GetAnswersByQuestionID(q.ID, c)
+		if err != nil {
+			utils.WriteError(c, http.StatusInternalServerError, errors.New("failed to fetch answers"))
+			return
+		}
+		if len(ans) > 0 {
+			pq.Answered = true
+			for _, a := range ans {
+				pq.Answer = append(pq.Answer, a.Content)
+			}
+		}
+		profile.Questions = append(profile.Questions, pq)
 	}
 
 	utils.WriteJson(c, http.StatusOK, profile)
