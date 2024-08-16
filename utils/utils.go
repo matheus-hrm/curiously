@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/a-h/templ"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -36,4 +37,8 @@ func GetIDFromParam(c *gin.Context, key string) (int, error) {
 		return 0, err
 	}
 	return id, nil
+}
+
+func Render(c *gin.Context, component templ.Component) error {
+	return component.Render(c.Request.Context(), c.Writer)
 }

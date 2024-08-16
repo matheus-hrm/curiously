@@ -6,3 +6,4 @@ logfile
 */tmp
 *.sql
 tmp
+node_modules

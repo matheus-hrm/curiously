@@ -24,6 +24,8 @@
               golint
               air
               postgresql
+              templ
+              tailwindcss
             ];
 
             shellHook = ''

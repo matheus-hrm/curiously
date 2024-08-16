@@ -13,6 +13,7 @@ import (
 	"gitub.com/matheus-hrm/curiously/service/answers"
 	"gitub.com/matheus-hrm/curiously/service/question"
 	"gitub.com/matheus-hrm/curiously/service/user"
+	"gitub.com/matheus-hrm/curiously/views"
 )
 
 type APIServer struct {
@@ -46,6 +47,12 @@ func (s *APIServer) SetupRoutes() {
 
 	answerHandler := answers.NewHandler(answerStore, userStore)
 	answerHandler.RegisterRoutes(s.router)
+
+	fileServer := http.FileServer(http.Dir("./static"))
+	s.router.GET("/static/*filepath", func(c *gin.Context) {
+		fileServer.ServeHTTP(c.Writer, c.Request)
+	})
+	views.RegisterRoutes(s.router)
 }
 
 func (s *APIServer) Run() error {
