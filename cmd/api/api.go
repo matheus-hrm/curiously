@@ -8,12 +8,12 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"gitub.com/matheus-hrm/curiously/service/answers"
 	"gitub.com/matheus-hrm/curiously/service/question"
 	"gitub.com/matheus-hrm/curiously/service/user"
-	"gitub.com/matheus-hrm/curiously/views"
 )
 
 type APIServer struct {
@@ -48,11 +48,12 @@ func (s *APIServer) SetupRoutes() {
 	answerHandler := answers.NewHandler(answerStore, userStore)
 	answerHandler.RegisterRoutes(s.router)
 
-	fileServer := http.FileServer(http.Dir("./static"))
-	s.router.GET("/static/*filepath", func(c *gin.Context) {
-		fileServer.ServeHTTP(c.Writer, c.Request)
-	})
-	views.RegisterRoutes(s.router)
+	s.router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Origin", "Content-Type"},
+		AllowCredentials: true,
+	}))
 }
 
 func (s *APIServer) Run() error {
