@@ -2,8 +2,6 @@ build:
 	@go build -o bin/curiously cmd/main.go
 
 run:
-	@templ generate
-	@./tailwindcss -i ./static/input.css -o ./static/styles.css 
 	@go run cmd/main.go
 
 test:

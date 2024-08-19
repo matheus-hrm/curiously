@@ -58,7 +58,7 @@ func (h *Handler) handleLogin(c *gin.Context) {
 		return
 	}
 
-	utils.WriteJson(c, http.StatusOK, gin.H{"token": token})
+	utils.WriteJson(c, http.StatusOK, gin.H{"token": token, "username": u.Username})
 }
 
 func (h *Handler) handleRegister(c *gin.Context) {
@@ -105,8 +105,6 @@ func (h *Handler) handleGetUserProfile(c *gin.Context) {
 		utils.WriteError(c, http.StatusInternalServerError, errors.New("failed to fetch questions"))
 		return
 	}
-	// FIXME ????
-	user.Email, user.Username = user.Username, user.Email
 	profile := types.UserProfile{
 		Email:     user.Email,
 		Username:  user.Username,

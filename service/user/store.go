@@ -21,8 +21,8 @@ func ScanRowIntoUser(rows pgx.Rows) (*types.User, error) {
 	user := new(types.User)
 	err := rows.Scan(
 		&user.ID,
-		&user.Email,
 		&user.Username,
+		&user.Email,
 		&user.Password_Hash,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -38,8 +38,8 @@ func (s *Store) GetUserByEmail(email string, c *gin.Context) (*types.User, error
 	user := new(types.User)
 	err := row.Scan(
 		&user.ID,
-		&user.Email,
 		&user.Username,
+		&user.Email,
 		&user.Password_Hash,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -79,8 +79,8 @@ func (s *Store) GetUserByID(id int, c *gin.Context) (*types.User, error) {
 	user := new(types.User)
 	err := row.Scan(
 		&user.ID,
-		&user.Email,
 		&user.Username,
+		&user.Email,
 		&user.Password_Hash,
 		&user.CreatedAt,
 		&user.UpdatedAt,
@@ -105,8 +105,8 @@ func (s *Store) GetUserByUsername(username string, c *gin.Context) (*types.User,
 	user := new(types.User)
 	err := row.Scan(
 		&user.ID,
-		&user.Email,
 		&user.Username,
+		&user.Email,
 		&user.Password_Hash,
 		&user.CreatedAt,
 		&user.UpdatedAt,

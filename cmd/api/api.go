@@ -35,6 +35,13 @@ func (s *APIServer) Router() *gin.Engine {
 }
 
 func (s *APIServer) SetupRoutes() {
+	s.router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"},
+		AllowCredentials: true,
+	}))
+
 	userStore := user.NewStore(s.db)
 	answerStore := answers.NewStore(s.db)
 	questionStore := question.NewStore(s.db)
@@ -47,13 +54,6 @@ func (s *APIServer) SetupRoutes() {
 
 	answerHandler := answers.NewHandler(answerStore, userStore)
 	answerHandler.RegisterRoutes(s.router)
-
-	s.router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-		AllowHeaders:     []string{"Origin", "Content-Type"},
-		AllowCredentials: true,
-	}))
 }
 
 func (s *APIServer) Run() error {
