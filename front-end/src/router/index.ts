@@ -1,13 +1,13 @@
 import { createRouter, createWebHistory } from "vue-router";
-import Home from "../components/Home.vue";
-import UserProfile from "../components/UserProfile.vue";
+import Home from "../views/Home.vue";
+import Profile from "../views/Profile.vue";
 
 const routes = [
-  { path: "/", component: Home },
+  { path: "/", name: "Home", component: Home },
   {
     path: "/user/:username",
-    component: UserProfile,
-    name: "UserProfile",
+    component: Profile,
+    name: "Profile",
     props: true,
   },
 ];

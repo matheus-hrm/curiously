@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import Home from "./components/Home.vue";
+import { RouterView } from "vue-router";
 </script>
 
 <template>
-  <main class="bg-stone-950 w-screen h-screen">
-    <Home />
-  </main>
+  <div class="bg-black text-white h-screen w-screen">
+    <RouterView />
+  </div>
 </template>

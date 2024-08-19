@@ -4,26 +4,34 @@ import { useQuery } from "@tanstack/vue-query";
 import { ref, watchEffect, watch } from "vue";
 import { useRouter } from "vue-router";
 
-const router = useRouter();
-
 type Data = {
   Token: string;
 };
 
+type User = {
+  username: string;
+  createdAt: string;
+  Questions: Questions[];
+};
+
 const email = ref("");
 const password = ref("");
+const user = ref<User | null>(null);
+const error = ref<string | null>(null);
+const isLoading = ref<boolean>(false);
+const router = useRouter();
+
+const showModal = (message: string) => {
+  alert(message);
+};
 
 const postLogin: () => Promise<void> | Data = async () => {
   const res = await axios.post("http://localhost:8080/login", {
     email: email.value,
     password: password.value,
   });
-  const data = res.data; 
+  const data = res.data;
   return data;
-};
-
-const showModal = (message: string) => {
-  alert(message);
 };
 
 const login = async () => {
@@ -32,19 +40,16 @@ const login = async () => {
     return;
   }
   const data = await postLogin();
-  watchEffect(() => {
-    if (data) {
-      showModal("Login efetuado com sucesso");
-      getProfile(data);
-    } else showModal("Email ou senha incorretos");
-  });
+  if (data) {
+    localStorage.setItem("token", data.Token);
+    getProfile(data);
+  } else showModal("Email ou senha incorretos");
 };
 
 const getProfile = async (data: { username: string; token: string }) => {
   const { username, token } = data;
-
   router.push({
-    name: "UserProfile",
+    name: "Profile",
     params: { username },
   });
 };
