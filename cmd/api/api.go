@@ -49,7 +49,7 @@ func (s *APIServer) SetupRoutes() {
 	userHandler := user.NewHandler(userStore, answerStore)
 	userHandler.RegisterRoutes(s.router)
 
-	questionHandler := question.NewHandler(questionStore)
+	questionHandler := question.NewHandler(questionStore,userStore)
 	questionHandler.RegisterRoutes(s.router)
 
 	answerHandler := answers.NewHandler(answerStore, userStore)

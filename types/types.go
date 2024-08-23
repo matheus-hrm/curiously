@@ -15,7 +15,7 @@ type UserStorage interface {
 }
 
 type QuestionStorage interface {
-	CreateQuestion(payload CreateQuestionPayload, context *gin.Context) (*Question, error)
+	CreateQuestion(payload CreateQuestionPayload, id int, context *gin.Context) (*Question, error)
 	GetQuestionByID(id int, context *gin.Context) (*Question, error)
 	GetQuestions(context *gin.Context) ([]Question, error)
 }
@@ -35,8 +35,8 @@ type CreateAnswerPayload struct {
 
 type CreateQuestionPayload struct {
 	Content     string    `json:"content" validate:"required"`
+	Username    string    `json:"username" validate:"required"`
 	IsAnonymous bool      `json:"is_anonymous"`
-	UserID      int       `json:"userid"`
 	CreatedAt   time.Time `json:"created_at"`
 }
 

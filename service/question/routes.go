@@ -10,11 +10,15 @@ import (
 )
 
 type Handler struct {
-	store types.QuestionStorage
+	questionStore types.QuestionStorage
+	userStore    types.UserStorage 
 }
 
-func NewHandler(store types.QuestionStorage) *Handler {
-	return &Handler{store}
+func NewHandler(QuestionStorage types.QuestionStorage, UserStorage types.UserStorage) *Handler {
+	return &Handler{
+		questionStore: QuestionStorage,
+		userStore: UserStorage,
+	}
 }
 
 func (h *Handler) RegisterRoutes(router *gin.Engine) {
@@ -35,7 +39,13 @@ func (h *Handler) handleCreateQuestion(c *gin.Context) {
 		return
 	}
 
-	question, err := h.store.CreateQuestion(payload, c)
+	user, err := h.userStore.GetUserByUsername(payload.Username, c) 
+	if err != nil {
+		utils.WriteError(c, http.StatusInternalServerError, err)
+		return
+	}
+
+	question, err := h.questionStore.CreateQuestion(payload,user.ID, c)
 	if err != nil {
 		utils.WriteError(c, http.StatusInternalServerError, err)
 		return
@@ -52,7 +62,7 @@ func (h *Handler) handleGetQuestion(c *gin.Context) {
 		return
 	}
 
-	question, err := h.store.GetQuestionByID(id, c)
+	question, err := h.questionStore.GetQuestionByID(id, c)
 	if err != nil {
 		utils.WriteError(c, http.StatusInternalServerError, err)
 		return
@@ -63,7 +73,7 @@ func (h *Handler) handleGetQuestion(c *gin.Context) {
 
 // TODO: FIX isAnonymous texto to bool conversion from db
 func (h *Handler) handleGetQuestions(c *gin.Context) {
-	questions, err := h.store.GetQuestions(c)
+	questions, err := h.questionStore.GetQuestions(c)
 	if err != nil {
 		utils.WriteError(c, http.StatusInternalServerError, err)
 		return
@@ -71,4 +81,3 @@ func (h *Handler) handleGetQuestions(c *gin.Context) {
 
 	utils.WriteJson(c, http.StatusOK, questions)
 }
-

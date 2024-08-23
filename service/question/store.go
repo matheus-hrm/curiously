@@ -14,10 +14,10 @@ func NewStore(db *pgxpool.Pool) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) CreateQuestion(payload types.CreateQuestionPayload, c *gin.Context) (*types.Question, error) {
+func (s *Store) CreateQuestion(payload types.CreateQuestionPayload,id int, c *gin.Context) (*types.Question, error) {
 	row := s.db.QueryRow(c,
 		"INSERT INTO questions (user_id, content, is_anonymous) VALUES ($1, $2, $3) RETURNING id, user_id, content, is_anonymous::boolean, created_at",
-		payload.UserID, payload.Content, payload.IsAnonymous,
+		id, payload.Content, payload.IsAnonymous,
 	)
 	question := new(types.Question)
 	err := row.Scan(
