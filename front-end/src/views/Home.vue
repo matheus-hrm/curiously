@@ -3,16 +3,8 @@ import axios from "axios";
 import { useQuery } from "@tanstack/vue-query";
 import { ref, watchEffect, watch } from "vue";
 import { useRouter } from "vue-router";
-
-type Data = {
-  Token: string;
-};
-
-type User = {
-  username: string;
-  createdAt: string;
-  Questions: Questions[];
-};
+import type { User } from "../types/types.ts";
+import NavBar from "../components/NavBar.vue";
 
 const email = ref("");
 const password = ref("");
@@ -25,7 +17,7 @@ const showModal = (message: string) => {
   alert(message);
 };
 
-const postLogin: () => Promise<void> | Data = async () => {
+const postLogin: () => Promise<void> | string = async () => {
   const res = await axios.post("http://localhost:8080/login", {
     email: email.value,
     password: password.value,
@@ -56,27 +48,31 @@ const getProfile = async (data: { username: string; token: string }) => {
 </script>
 
 <template>
-  <div class="bg-inherit text-white">
-    <h1 class="pt-12 ml-4 text-6xl text-orange-600">Curiously</h1>
+  <div class="text-white space-y-5 bg-[#242421] h-full">
+    <NavBar />
     <form
       @submit.prevent="login"
       class="flex flex-col justify-center items-center"
     >
       <input
         type="email"
-        class="w-1/2 p-2 m-2 text-lg bg-black focus:outline-none"
+        class="w-1/3 p-2 m-2 mb-4 text-lg border-2 border-transparent focus:outline-none bg-zinc-800 focus:rounded-none focus:border-2 focus:border-b-white transition duration:200 ease-in-out"
         placeholder="Email"
         v-model="email"
       />
       <input
         type="password"
-        class="w-1/2 p-2 m-2 text-lg bg-black focus:outline-none"
+        class="w-1/3 p-2 m-2 mt-2 text-lg focus:outline-none border-2 border-transparent bg-zinc-800 focus:rounded-none focus:border-2 focus:border-b-white transition duration:200 ease-in-out"
         placeholder="Password"
         v-model="password"
       />
-      <p class="text-gray-500">não tem uma conta ?</p>
+      <div>
+        <router-link to="/register">
+          <p class="text-gray-200 m-2">não tem uma conta ?</p>
+        </router-link>
+      </div>
       <button
-        class="w-1/2 p-2 m-2 text-lg bg-orange-600 text-white"
+        class="w-1/3 rounded-md p-2 mt-3 text-lg bg-emerald-400 text-white"
         type="submit"
       >
         Login
