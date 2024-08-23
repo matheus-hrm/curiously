@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"os"
 
@@ -72,18 +73,20 @@ func (h *Handler) handleRegister(c *gin.Context) {
 		return
 	}
 	_, err := h.userStore.GetUserByEmail(payload.Email, c)
-	if err == nil {
+	if err != nil {
 		utils.WriteError(c, http.StatusBadRequest, errors.New("email already in use"))
 		return
 	}
+
 	hash, err := auth.HashPassword(payload.Password)
 	if err != nil {
 		utils.WriteError(c, http.StatusInternalServerError, errors.New("internal server error"))
 		return
 	}
+	log.Printf("user: %v", payload)
 	user := types.User{
-		Email:         payload.Email,
 		Username:      payload.Username,
+		Email:         payload.Email,
 		Password_Hash: hash,
 	}
 	if err := h.userStore.CreateUser(user, c); err != nil {

@@ -44,6 +44,9 @@ func (s *Store) GetUserByEmail(email string, c *gin.Context) (*types.User, error
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	}
 	if err != nil {
 		log.Fatalf("error scanning row: %s", err)
 	}
@@ -93,7 +96,7 @@ func (s *Store) GetUserByID(id int, c *gin.Context) (*types.User, error) {
 }
 
 func (s *Store) CreateUser(user types.User, c *gin.Context) error {
-	_, err := s.db.Exec(c, "INSERT INTO users (email, username, password_hash) VALUES ($1, $2, $3)", user.Email, user.Username, user.Password_Hash)
+	_, err := s.db.Exec(c, "INSERT INTO users ( username,email, password_hash) VALUES ($1, $2, $3)", user.Username, user.Email, user.Password_Hash)
 	if err != nil {
 		return err
 	}
