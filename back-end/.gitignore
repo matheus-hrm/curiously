@@ -7,3 +7,4 @@ logfile
 *.sql
 tmp
 node_modules
+routes.http
