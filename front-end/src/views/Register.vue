@@ -49,7 +49,7 @@ const register = async () => {
         v-model="email"
       />
       <input
-        type="senha"
+        type="password"
         class="w-1/3 p-2 m-2 mt-2 text-lg focus:outline-none border-2 border-transparent bg-zinc-800 focus:rounded-none focus:border-2 focus:border-b-white transition duration:200 ease-in-out"
         placeholder="Senha"
         v-model="senha"
